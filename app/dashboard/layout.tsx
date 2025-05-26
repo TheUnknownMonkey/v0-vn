@@ -14,9 +14,14 @@ export default async function DashboardLayout({
     data: { session },
   } = await supabase.auth.getSession()
 
+  console.log("Dashboard Layout: Checking authentication")
+
   if (!session) {
+    console.log("Dashboard Layout: No session found, redirecting to login")
     redirect("/auth/login")
   }
+
+  console.log("Dashboard Layout: User is authenticated, rendering dashboard")
 
   return (
     <div className="min-h-screen bg-background">

@@ -12,8 +12,11 @@ export default async function HomePage() {
 
   // If authenticated, redirect to dashboard
   if (session) {
+    console.log("Home: User is authenticated, redirecting to dashboard")
     redirect("/dashboard")
   }
+
+  console.log("Home: User is not authenticated, showing landing page")
 
   // Show landing page content instead of redirecting
   return (

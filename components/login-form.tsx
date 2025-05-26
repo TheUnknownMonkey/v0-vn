@@ -35,10 +35,11 @@ export default function LoginForm() {
   const router = useRouter()
   const [state, formAction] = useActionState(signIn, null)
 
-  // Handle successful login by redirecting
+  // Handle successful login by redirecting directly to dashboard
   useEffect(() => {
     if (state?.success) {
-      router.push("/")
+      console.log("Login successful, redirecting to dashboard")
+      router.push("/dashboard")
     }
   }, [state, router])
 

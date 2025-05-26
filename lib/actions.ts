@@ -33,7 +33,8 @@ export async function signIn(prevState: any, formData: FormData) {
     }
 
     // Return success instead of redirecting directly
-    return { success: true }
+    // The form component will handle the redirect
+    return { success: true, redirectTo: "/dashboard" }
   } catch (error) {
     console.error("Login error:", error)
     return { error: "An unexpected error occurred. Please try again." }

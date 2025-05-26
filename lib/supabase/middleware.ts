@@ -16,8 +16,6 @@ export async function updateSession(request: NextRequest) {
     })
   }
 
-  console.log("Middleware: Path =", request.nextUrl.pathname)
-
   // Skip middleware for static assets and API routes
   if (
     request.nextUrl.pathname.startsWith("/_next") ||
@@ -26,6 +24,8 @@ export async function updateSession(request: NextRequest) {
   ) {
     return NextResponse.next()
   }
+
+  console.log(`Middleware: Processing ${request.nextUrl.pathname}`)
 
   const res = NextResponse.next()
 
@@ -37,9 +37,10 @@ export async function updateSession(request: NextRequest) {
   const code = requestUrl.searchParams.get("code")
 
   if (code) {
+    console.log("Middleware: Auth callback detected, exchanging code for session")
     // Exchange the code for a session
     await supabase.auth.exchangeCodeForSession(code)
-    // Redirect to dashboard after successful auth instead of home
+    // Redirect to dashboard after successful auth
     console.log("Middleware: Auth callback redirecting to /dashboard")
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
@@ -49,25 +50,29 @@ export async function updateSession(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  console.log("Middleware: Has session =", !!session)
+  console.log(`Middleware: Path=${request.nextUrl.pathname}, HasSession=${!!session}`)
 
-  // Protected routes - redirect to login if not authenticated
+  // Define route types
   const isAuthRoute =
     request.nextUrl.pathname.startsWith("/auth/login") ||
     request.nextUrl.pathname.startsWith("/auth/sign-up") ||
     request.nextUrl.pathname === "/auth/callback"
 
-  // Don't redirect if already on dashboard or auth routes
   const isDashboardRoute = request.nextUrl.pathname.startsWith("/dashboard")
+  const isRootRoute = request.nextUrl.pathname === "/"
 
-  if (!isAuthRoute && !isDashboardRoute) {
-    if (!session) {
-      // Only redirect non-auth, non-dashboard routes when not authenticated
-      console.log("Middleware: Unauthenticated user accessing protected route, redirecting to /auth/login")
-      const redirectUrl = new URL("/auth/login", request.url)
-      return NextResponse.redirect(redirectUrl)
-    }
+  // Handle authenticated users on auth routes
+  if (isAuthRoute && session) {
+    console.log("Middleware: Authenticated user on auth route, redirecting to /dashboard")
+    return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
+  // Handle unauthenticated users on protected routes
+  if (!isAuthRoute && !session) {
+    console.log("Middleware: Unauthenticated user on protected route, redirecting to /auth/login")
+    return NextResponse.redirect(new URL("/auth/login", request.url))
+  }
+
+  // For all other cases, continue with the request
   return res
 }
